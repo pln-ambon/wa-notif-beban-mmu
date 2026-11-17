@@ -25,7 +25,22 @@ export async function getHistoryTotal(unitId: number, target: Date): Promise<num
     `)
 
   const p = result.recordset[0]?.p
-  return p === undefined || p === null ? null : Number(p)
+  if (p !== undefined && p !== null) return Number(p)
+
+  // Tidak ada baris di jendela: log penyebab yang mungkin (tabel kosong untuk
+  // unit ini, atau offset waktu berbeda) supaya mudah didiagnosis dari log PM2.
+  const latest = await pool.request()
+    .input('unitId', sql.Int, unitId)
+    .query<{ time: Date; p: number | null }>(
+      'SELECT TOP 1 [time], p FROM POWER_HIS_HOUR WHERE unit_id = @unitId ORDER BY [time] DESC'
+    )
+  const row = latest.recordset[0]
+  console.log(
+    `[histori] unit ${unitId}: tidak ada baris di ${new Date(target.getTime() - toleranceMs).toISOString()} s/d ` +
+      `${new Date(target.getTime() + toleranceMs).toISOString()} (UTC-field = waktu DB). ` +
+      (row ? `Baris terbaru di tabel: ${row.time.toISOString()} p=${row.p}` : 'Tabel tidak punya baris untuk unit ini.')
+  )
+  return null
 }
 
 export async function getMmuMeter(): Promise<MeterRow[]> {
