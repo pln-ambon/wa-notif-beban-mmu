@@ -30,6 +30,8 @@ Di bawah `TOTAL BEBAN` ditampilkan selisih terhadap **2 jam sebelumnya** dan **j
 - Jika histori tidak ada atau gagal dibaca, baris menampilkan `➖ Data ... belum tersedia`; pesan tetap terkirim.
 - `p` di `POWER_HIS_HOUR` diasumsikan satuan MW (tanpa konversi). Ubah di `getDeviation` bila ternyata kW.
 
+Untuk Tual, rincian unit 201 ditampilkan di blok **PLTMG DULLAH** (jumlah `p` MVTIC + A3CS) di bawah baris deviasi, diikuti baris statis `SEWA : -`. Pengaturannya lewat `totalBlock` di `src/config/reports.ts`; laporan tanpa `totalBlock` (Sofifi) menampilkan rincian langsung di bawah `TOTAL BEBAN`.
+
 Judul blok unit non-total diambil dari `unit_name` di `SCADA_UNIT` (fallback `UNIT <id>`). Menambah atau mengubah unit cukup dengan mengedit file tersebut.
 
 Satuan: `p` dianggap sudah **MW** dan `i` dalam **A**, tanpa konversi. Jika ternyata kW, ubah di `src/utils/message-builder.ts`.

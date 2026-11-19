@@ -20,6 +20,15 @@ export interface Report {
   units: number[]
   /** key config untuk ID grup WA produksi */
   groupEnvKey: GroupEnvKey
+  /**
+   * Opsional. Jika diisi, rincian unit total TIDAK ditaruh di bawah "TOTAL BEBAN",
+   * melainkan di blok sendiri berjudul `title` (jumlah p unit total) di bawah
+   * baris deviasi, ditambah `extraLines` (baris statis, mis. SEWA : -).
+   */
+  totalBlock?: {
+    title: string
+    extraLines?: { label: string; value: string }[]
+  }
 }
 
 /** Selisih total beban (MW) terhadap pembanding; null = data histori tidak ada. */

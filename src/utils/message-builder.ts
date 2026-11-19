@@ -10,6 +10,10 @@ function line(label: string, row: MeterRow): string {
   return `${String(label).padEnd(16, ' ')}: ${formatNumber(row.p, 2)} MW | ${formatNumber(row.i, 0)} A`
 }
 
+function staticLine(label: string, value: string): string {
+  return `${String(label).padEnd(16, ' ')}: ${value}`
+}
+
 // `label` mis. "2 jam sebelumnya" / "jam sama H-1"; `prep` kata depan untuk Naik/Turun.
 function deviationLine(delta: number | null, label: string, prep: string): string {
   if (delta === null) return `➖ Data pembanding ${label} belum tersedia`
@@ -38,9 +42,9 @@ export function buildReportMessage(
   )
 
   const blocks = report.units
-    .map((unitId) => {
+    .flatMap((unitId): string[] => {
       const unitRows = mine.filter((r) => Number(r.unit_id) === unitId)
-      if (!unitRows.length) return null
+      if (!unitRows.length) return []
 
       const name = unitRows[0].unit_name || `UNIT ${unitId}`
       const isTotal = unitId === report.totalUnitId
@@ -55,9 +59,20 @@ export function buildReportMessage(
             ]
           : []
 
-      return [header, ...deviationLines, ...unitRows.map((r) => line(r.unit_subname, r))].join('\n')
+      const detailLines = unitRows.map((r) => line(r.unit_subname, r))
+
+      // Unit total dengan blok sendiri (mis. Tual): TOTAL BEBAN + deviasi, lalu blok
+      // pembangkit (jumlah p unit total) berisi rincian dan baris statis.
+      if (isTotal && report.totalBlock) {
+        const extra = (report.totalBlock.extraLines ?? []).map((l) => staticLine(l.label, l.value))
+        return [
+          [header, ...deviationLines].join('\n'),
+          [`*${report.totalBlock.title} ➤ ${formatNumber(total, 2)} MW*`, ...detailLines, ...extra].join('\n')
+        ]
+      }
+
+      return [[header, ...deviationLines, ...detailLines].join('\n')]
     })
-    .filter((b): b is string => b !== null)
 
   const content = [
     `*DATA BEBAN ${report.title}*`,
