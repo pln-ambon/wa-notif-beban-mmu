@@ -25,7 +25,8 @@ Ada di [src/config/reports.ts](src/config/reports.ts):
 
 Di bawah `TOTAL BEBAN` ditampilkan selisih terhadap **2 jam sebelumnya** dan **jam yang sama H-1** (📈 Naik / 📉 Turun / ➖ Tetap). Pembanding dibaca dari tabel `POWER_HIS_HOUR` untuk `unit_id` total (201 dan 301); tabel itu diisi stored procedure terpisah, bukan oleh service ini (service ini hanya membaca).
 
-- Waktu pembanding dihitung dalam waktu dinding WIT (sama dengan DB), dibulatkan ke awal jam, lalu dicari baris terdekat dalam ±5 menit.
+- Waktu pembanding dihitung dalam waktu dinding WIT (sama dengan DB), dibulatkan ke awal jam, lalu dicari snapshot terdekat dalam ±5 menit.
+- `POWER_HIS_HOUR` menyimpan **satu baris per `unit_subname`** per jam, jadi total pembanding = `SUM(p)` semua baris `unit_id` pada snapshot itu (baris dalam ±60 detik dianggap satu snapshot). Definisinya sama dengan total sekarang (jumlah `p` unit total).
 - Jika histori tidak ada atau gagal dibaca, baris menampilkan `➖ Data ... belum tersedia`; pesan tetap terkirim.
 - `p` di `POWER_HIS_HOUR` diasumsikan satuan MW (tanpa konversi). Ubah di `getDeviation` bila ternyata kW.
 

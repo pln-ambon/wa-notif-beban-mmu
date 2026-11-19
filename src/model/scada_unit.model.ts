@@ -5,9 +5,12 @@ import type { MeterRow } from '../types'
 
 // Baris terakhir per (unit_id, unit_subname) dari SCADA_METER_2.
 // unit_id berasal dari konstanta numerik, aman di-inline.
-// Total beban (p) satu unit dari POWER_HIS_HOUR (diisi stored procedure, terpisah
-// dari service ini) pada waktu `target` (waktu dinding DB). Ambil baris terdekat
-// dalam +/- 5 menit; null jika tidak ada.
+// Total beban satu unit dari POWER_HIS_HOUR (diisi stored procedure, terpisah dari
+// service ini). Tabel menyimpan SATU BARIS PER unit_subname per jam, jadi totalnya
+// adalah SUM(p) semua baris unit_id tersebut pada snapshot yang sama.
+// Snapshot = waktu terdekat dengan `target` dalam +/- 5 menit; baris dalam +/- 60 detik
+// dari waktu itu dianggap satu snapshot (waktu antar subname bisa selisih ~1 detik).
+// null jika tidak ada snapshot.
 export async function getHistoryTotal(unitId: number, target: Date): Promise<number | null> {
   const toleranceMs = 5 * 60 * 1000
   const pool = await sql.connect(config.sqlConfig)
@@ -16,18 +19,25 @@ export async function getHistoryTotal(unitId: number, target: Date): Promise<num
     .input('target', sql.DateTime2, target)
     .input('startTime', sql.DateTime2, new Date(target.getTime() - toleranceMs))
     .input('endTime', sql.DateTime2, new Date(target.getTime() + toleranceMs))
-    .query<{ p: number | null; time: Date }>(`
-      SELECT TOP 1 p, [time]
-      FROM POWER_HIS_HOUR
-      WHERE unit_id = @unitId
-        AND [time] >= @startTime AND [time] <= @endTime
-      ORDER BY ABS(DATEDIFF(SECOND, [time], @target))
+    .query<{ p: number | null; n: number; snapshot: Date | null }>(`
+      WITH nearest AS (
+        SELECT TOP 1 [time] AS t
+        FROM POWER_HIS_HOUR
+        WHERE unit_id = @unitId
+          AND [time] >= @startTime AND [time] <= @endTime
+        ORDER BY ABS(DATEDIFF(SECOND, [time], @target))
+      )
+      SELECT SUM(h.p) AS p, COUNT(*) AS n, MIN(h.[time]) AS snapshot
+      FROM POWER_HIS_HOUR h
+      JOIN nearest ON ABS(DATEDIFF(SECOND, h.[time], nearest.t)) <= 60
+      WHERE h.unit_id = @unitId
     `)
 
-  const p = result.recordset[0]?.p
+  const row = result.recordset[0]
+  const p = row?.p
   if (p !== undefined && p !== null) {
     console.log(
-      `[histori] unit ${unitId}: target ${target.toISOString()} -> baris time=${result.recordset[0].time.toISOString()} p=${p}`
+      `[histori] unit ${unitId}: target ${target.toISOString()} -> snapshot ${row.snapshot?.toISOString()} (${row.n} baris) total p=${p}`
     )
     return Number(p)
   }
@@ -39,11 +49,11 @@ export async function getHistoryTotal(unitId: number, target: Date): Promise<num
     .query<{ time: Date; p: number | null }>(
       'SELECT TOP 1 [time], p FROM POWER_HIS_HOUR WHERE unit_id = @unitId ORDER BY [time] DESC'
     )
-  const row = latest.recordset[0]
+  const newest = latest.recordset[0]
   console.log(
     `[histori] unit ${unitId}: tidak ada baris di ${new Date(target.getTime() - toleranceMs).toISOString()} s/d ` +
       `${new Date(target.getTime() + toleranceMs).toISOString()} (UTC-field = waktu DB). ` +
-      (row ? `Baris terbaru di tabel: ${row.time.toISOString()} p=${row.p}` : 'Tabel tidak punya baris untuk unit ini.')
+      (newest ? `Baris terbaru di tabel: ${newest.time.toISOString()} p=${newest.p}` : 'Tabel tidak punya baris untuk unit ini.')
   )
   return null
 }
