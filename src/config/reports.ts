@@ -4,7 +4,7 @@ import type { Report } from '../types'
 export const REPORTS: Report[] = [
   {
     key: 'tual',
-    title: 'UPS TUAL',
+    title: 'UP3 TUAL',
     totalUnitId: 201,
     units: [201, 251, 252],
     groupEnvKey: 'WA_GROUP_ID_TUAL'

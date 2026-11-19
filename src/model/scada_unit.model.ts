@@ -16,8 +16,8 @@ export async function getHistoryTotal(unitId: number, target: Date): Promise<num
     .input('target', sql.DateTime2, target)
     .input('startTime', sql.DateTime2, new Date(target.getTime() - toleranceMs))
     .input('endTime', sql.DateTime2, new Date(target.getTime() + toleranceMs))
-    .query<{ p: number | null }>(`
-      SELECT TOP 1 p
+    .query<{ p: number | null; time: Date }>(`
+      SELECT TOP 1 p, [time]
       FROM POWER_HIS_HOUR
       WHERE unit_id = @unitId
         AND [time] >= @startTime AND [time] <= @endTime
@@ -25,7 +25,12 @@ export async function getHistoryTotal(unitId: number, target: Date): Promise<num
     `)
 
   const p = result.recordset[0]?.p
-  if (p !== undefined && p !== null) return Number(p)
+  if (p !== undefined && p !== null) {
+    console.log(
+      `[histori] unit ${unitId}: target ${target.toISOString()} -> baris time=${result.recordset[0].time.toISOString()} p=${p}`
+    )
+    return Number(p)
+  }
 
   // Tidak ada baris di jendela: log penyebab yang mungkin (tabel kosong untuk
   // unit ini, atau offset waktu berbeda) supaya mudah didiagnosis dari log PM2.

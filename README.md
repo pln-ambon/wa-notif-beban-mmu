@@ -1,6 +1,6 @@
 # wa-notif-beban-mmu
 
-Service Node.js (TypeScript) yang mengirim notifikasi WhatsApp (via WABLAS) berisi data beban dari SQL Server SCADA untuk **UPS Tual** dan **UP3 Sofifi**. Tiap UP3 dikirim ke grup WA masing-masing.
+Service Node.js (TypeScript) yang mengirim notifikasi WhatsApp (via WABLAS) berisi data beban dari SQL Server SCADA untuk **UP3 Tual** dan **UP3 Sofifi**. Tiap UP3 dikirim ke grup WA masing-masing.
 
 Tidak ada endpoint API. Express hanya menjaga proses tetap hidup; pekerjaan dilakukan oleh satu cron job.
 
@@ -18,7 +18,7 @@ Ada di [src/config/reports.ts](src/config/reports.ts):
 
 | Laporan | Total beban | Unit yang ditampilkan | Env grup |
 |---|---|---|---|
-| UPS Tual | jumlah `p` unit 201 | 201, 251, 252 | `WA_GROUP_ID_TUAL` |
+| UP3 Tual | jumlah `p` unit 201 | 201, 251, 252 | `WA_GROUP_ID_TUAL` |
 | UP3 Sofifi | jumlah `p` unit 301 | 301 | `WA_GROUP_ID_SOFIFI` |
 
 ## Deviasi (histori)
@@ -36,7 +36,7 @@ Satuan: `p` dianggap sudah **MW** dan `i` dalam **A**, tanpa konversi. Jika tern
 ## Contoh pesan
 
 ```
-*DATA BEBAN UPS TUAL*
+*DATA BEBAN UP3 TUAL*
 Sabtu, 14/11/2026 23:30 WIT
 
 *TOTAL BEBAN ➤ 11.33 MW*

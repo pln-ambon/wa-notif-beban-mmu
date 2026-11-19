@@ -8,8 +8,8 @@ const r = (unit_id: number, unit_name: string, unit_subname: string, v: number, 
   ({ unit_id, unit_name, unit_subname, time: t, v, i, p, f: 0 })
 
 const rows: MeterRow[] = [
-  r(201, 'UPS TUAL', 'MVTIC', 20.5036, 459.82, 5.3954),
-  r(201, 'UPS TUAL', 'A3CS', 20.4981, 521.52, 5.9302),
+  r(201, 'UP3 TUAL', 'MVTIC', 20.5036, 459.82, 5.3954),
+  r(201, 'UP3 TUAL', 'A3CS', 20.4981, 521.52, 5.9302),
   r(251, 'PENYULANG 251', 'HOTEL', 20.4981, 55.2, 1.94),
   r(251, 'PENYULANG 251', 'DULLAH', 20.4981, 82.6, 2.772),
   r(251, 'PENYULANG 251', 'KOTA', 20.4981, 30.8, 1.066),

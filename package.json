@@ -1,7 +1,7 @@
 {
   "name": "wa-notif-beban-mmu",
   "version": "1.0.0",
-  "description": "Notifikasi WA data beban UPS Tual & UP3 Sofifi (MMU)",
+  "description": "Notifikasi WA data beban UP3 Tual & UP3 Sofifi (MMU)",
   "main": "dist/app.js",
   "scripts": {
     "build": "tsc",
